@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
             let currentDiv = document.getElementById("timeunitdiv-" + userTime) 
             currentDiv.style.visibility = "hidden"
         }
-    }, "100000")
+    }, "1000")
 
 
 
@@ -143,6 +143,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
                     box.style.visibility = "hidden"
                     cadran.style.visibility = "hidden"
                     gameResult.style.visibility = "visible"
+                    timer.style.visibility="hidden"
 
                     afterGameActionButton.addEventListener("click", (event) => {
                         let username = playerNameInput.value
