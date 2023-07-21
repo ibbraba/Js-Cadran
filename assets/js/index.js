@@ -19,12 +19,12 @@ document.addEventListener("DOMContentLoaded", (event) => {
     let bestScores = []
     let tryNumber = 0
     let code = getRandomIntInclusive(0, 999)
-    console.log("Genrated code :" + code)
+   
 
 
     //Dummy fixtures 
 
-    loadDummyFixtures()
+    loadScores()
 
 
 
@@ -51,6 +51,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 
 
+    //API Call 
+    FetchScoresFromAPI()
+  
+
+
+
+
     //CoDE GENERATION
     let generatedCodeArray = Array.from(String(code), Number)
     if (code < 10) {
@@ -62,12 +69,12 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
 
     //CHRONO BAR 
-    for(let i=1; i<=90; i++){
+    for (let i = 1; i <= 90; i++) {
         let timeUnitDiv = document.createElement("div")
         timeUnitDiv.style.backgroundColor = "white"
         timeUnitDiv.style.width = "8px"
         timeUnitDiv.style.height = "5px"
-        timeUnitDiv.id=`timeunitdiv-${i}`
+        timeUnitDiv.id = `timeunitdiv-${i}`
         timer.appendChild(timeUnitDiv)
 
 
@@ -75,21 +82,20 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
 
     //GAME LOOP
+
+
     var buttons = document.querySelectorAll(".digit");
     let userTime = 0
     let chrono = setInterval(() => {
         userTime++
-      
+
         if (userTime > 90) {
             loseScenario()
-        }else{
-            let currentDiv = document.getElementById("timeunitdiv-" + userTime) 
+        } else {
+            let currentDiv = document.getElementById("timeunitdiv-" + userTime)
             currentDiv.style.visibility = "hidden"
         }
     }, "1000")
-
-
-
 
     buttons.forEach(button => {
 
@@ -143,7 +149,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
                     box.style.visibility = "hidden"
                     cadran.style.visibility = "hidden"
                     gameResult.style.visibility = "visible"
-                    timer.style.visibility="hidden"
+                    timer.style.visibility = "hidden"
 
                     afterGameActionButton.addEventListener("click", (event) => {
                         let username = playerNameInput.value
@@ -156,7 +162,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 
                             updateLeaderboard(username, tryNumber, userTime)
-                            fetchBestScores()
+                            displayBestScores()
 
                             gameResult.style.visibility = "hidden"
                             leaderboards.style.visibility = "visible"
@@ -190,10 +196,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     })
 
 
-    function timeLeft() {
-        console.log(timer);
-        timer.style.width = (timer.style.width - "4px")
-    }
+
 
     function loseScenario() {
         clearInterval(chrono)
@@ -201,7 +204,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         box.style.visibility = "hidden"
         cadran.style.visibility = "hidden"
 
-        fetchBestScores()
+        displayBestScores()
         mainTitle.innerText = "Perdu"
         leaderboards.style.visibility = "visible"
 
@@ -210,63 +213,47 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
 
     //Load some fixture for leaderbord if empty
-    function loadDummyFixtures() {
+    function loadScores() {
 
         let count = 0
-        if (localStorage.length > 0) {
-            console.log("Storage legth: " + localStorage.length);
+      
+        //Check if result written in localstorage
+        for (i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
 
-            for (i = 1; i < localStorage.length++; i++) {
-                let key = localStorage.key(i);
-                console.log("key: " + key);
+            if (key.includes("cadranleaderboard")) {
 
+                bestScores.push(JSON.parse(localStorage.getItem(key)))
+                count ++
 
-
-                if (key.includes("cadran-leaderboard")) {
-                    console.log("Fixture : " + localStorage.getItem(key));
-                    bestScores.push(JSON.parse(localStorage.getItem(key)))
-                    count++
-                    console.log("Bestcores on init :" + bestScores.length);
-                };
+            };
 
 
-            }
 
         }
 
-        //Dummy fixtures if empty leaderboard
-        if (count == 0) {
-            localStorage.setItem("cadran-leaderboard-1", `{"username": "Ibra", "score": "3", "time": "40"}`)
-            localStorage.setItem("cadran-leaderboard-2", `{"username": "John", "score": "4", "time": "25"}`)
-            localStorage.setItem("cadran-leaderboard-3", `{"username": "Amar Jr", "score": "4", "time": "40"}`)
-            localStorage.setItem("cadran-leaderboard-4", `{"username": "Sara", "score": "5", "time": "21"}`)
-            localStorage.setItem("cadran-leaderboard-5", `{"username": "Cisco", "score": "5", "time": "40"}`)
-            localStorage.setItem("cadran-leaderboard-6", `{"username": "Ness", "score": "5", "time": "55"}`)
-            localStorage.setItem("cadran-leaderboard-7", `{"username": "Laure", "score": "6", "time": "30"}`)
-            localStorage.setItem("cadran-leaderboard-8", `{"username": "Eldorado", "score": "6", "time": "35"}`)
-            localStorage.setItem("cadran-leaderboard-9", `{"username": "Future", "score": "6", "time": "40"}`)
-            localStorage.setItem("cadran-leaderboard-10", `{"username": "Simmons", "score": "6", "time": "49"}`)
 
-            for (i = 1; i < localStorage.length++; i++) {
-                let key = localStorage.key(i);
-                console.log("key: " + key);
-
-
-
-                if (key.includes("cadran-leaderboard")) {
-
-                    bestScores.push(JSON.parse(localStorage.getItem(key)))
-                    count++
-                    console.log("Bestcores on init :" + bestScores.length);
-                };
-
-
-            }
-
-
-        } else {
-            console.log("Leaderboard already exists");
+        //IF NO scores in localstorage
+        if(count === 0){
+            
         }
+            try {
+            FetchScoresFromAPI()
+            console.log("Fetching data from API OK");
+        } catch {
+
+
+
+
+            console.log("Fetching error, loading dummy fixtures");
+
+            addDumyFixtures()
+        }
+
+
+
+        console.log("Bestcores on init :" + bestScores.length);
+
     }
 
     function checkCode(userInput, generatedCode) {
@@ -284,7 +271,21 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
 
 
-    function fetchBestScores() {
+    function addDumyFixtures() {
+        localStorage.setItem("cadran-leaderboard-1", `{"username": "Ibra", "score": "3", "time": "40"}`)
+        localStorage.setItem("cadran-leaderboard-2", `{"username": "John", "score": "4", "time": "25"}`)
+        localStorage.setItem("cadran-leaderboard-3", `{"username": "Amar Jr", "score": "4", "time": "40"}`)
+        localStorage.setItem("cadran-leaderboard-4", `{"username": "Sara", "score": "5", "time": "21"}`)
+        localStorage.setItem("cadran-leaderboard-5", `{"username": "Cisco", "score": "5", "time": "40"}`)
+        localStorage.setItem("cadran-leaderboard-6", `{"username": "Ness", "score": "5", "time": "55"}`)
+        localStorage.setItem("cadran-leaderboard-7", `{"username": "Laure", "score": "6", "time": "30"}`)
+        localStorage.setItem("cadran-leaderboard-8", `{"username": "Eldorado", "score": "6", "time": "35"}`)
+        localStorage.setItem("cadran-leaderboard-9", `{"username": "Future", "score": "6", "time": "40"}`)
+        localStorage.setItem("cadran-leaderboard-10", `{"username": "Simmons", "score": "6", "time": "49"}`)
+
+    }
+
+    function displayBestScores() {
 
 
         bestScores.sort(function (a, b) {
@@ -327,7 +328,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
         });
 
-      
+
         let result = `{"username": "${username}", "score": "${score}", "time": "${time}"}`;
 
 
@@ -336,7 +337,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
         if (score <= lastLeaderboardscore) {
             //No new entry if score too low
-            if(score == lastLeaderboardscore && lastLeaderboardtime <= time ){
+            if (score == lastLeaderboardscore && lastLeaderboardtime <= time) {
                 return
             }
 
@@ -362,15 +363,18 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
             });
 
+
+
+
             //Rewrite records in localstorage 
             for (let i = 0; i < bestScores.length; i++) {
-
-
                 console.log("Rewrite in memory: " + `{"username": "${bestScores[i].username}", "score": ${bestScores[i].score}}, `);
                 localStorage.setItem("cadran-leaderboard-" + i, `{"username": "${bestScores[i].username}", "score": "${bestScores[i].score}", "time": "${bestScores[i].time}"}`)
-
-
             }
+
+
+            //Fetch new leaderboard to API
+            convertScoresToJSON()
 
 
 
@@ -393,7 +397,93 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
 
 
+    function convertScoresToJSON() {
+       ///////////////////// EXAMPLE OF POST METHOD TO SEND BEST SCORE TO SERVER ///////////////////
+        let stringScore = "{"
 
+        for (let i = 1; i < bestScores.length; i++) {
+            stringScore += `"cadranleaderboard${i}": `;
+
+            //"cadran-leaderboard-1", `{"username": "Ibra", "score": "3", "time": "40"}
+            stringScore += JSON.stringify(bestScores[i])
+            stringScore += ","
+
+            //  console.log(stringScore);
+
+        }
+
+        stringScore.substring(0, stringScore.length - 1)
+        stringScore += "}"
+        console.log(stringScore);
+        
+        
+        /* POST REQUEST 
+
+
+
+        try{
+            const url = "https://api.npoint.io/1d91d3b434dc8598328b"
+            let req = new XMLHttpRequest();
+            req.open("POST", url)
+            req.setRequestHeader("Content-Type", "application/json")
+            req.send(stringScore)
+        }catch(err){
+            console.log(err);
+        }
+
+
+        */
+
+
+    }
+
+    /**
+     * Gets Data from API and store it in localserver
+     */
+
+    function FetchScoresFromAPI() {
+
+        const url = "https://api.npoint.io/1d91d3b434dc8598328b"
+        let req = new XMLHttpRequest();
+        req.open("GET", url)
+        req.responseType = "json"
+        // req.setRequestHeader("Content-Type", "application/json")
+        req.send()
+        req.onload = () => {
+            if (req.readyState === XMLHttpRequest.DONE) {
+
+                if (req.status === 200) {
+                    let res = req.response;
+                    stringResponse = JSON.stringify(res)
+                    objResponse = JSON.parse(stringResponse)
+                    console.log("API RESPONSE :" + objResponse.cadranleaderboard1.time);
+
+                    //TODO : Reformat JSON to loop through var objresponse
+
+
+                    localStorage.setItem("cadranleaderboard1", `{"username": "${objResponse.cadranleaderboard1.username}", "score": "${objResponse.cadranleaderboard1.score}", "time": "${objResponse.cadranleaderboard1.time}"}`)
+                    localStorage.setItem("cadranleaderboard2", `{"username": "${objResponse.cadranleaderboard2.username}", "score": "${objResponse.cadranleaderboard2.score}", "time": "${objResponse.cadranleaderboard2.time}"}`)
+                    localStorage.setItem("cadranleaderboard3", `{"username": "${objResponse.cadranleaderboard3.username}", "score": "${objResponse.cadranleaderboard3.score}", "time": "${objResponse.cadranleaderboard3.time}"}`)
+                    localStorage.setItem("cadranleaderboard4", `{"username": "${objResponse.cadranleaderboard4.username}", "score": "${objResponse.cadranleaderboard4.score}", "time": "${objResponse.cadranleaderboard4.time}"}`)
+                    localStorage.setItem("cadranleaderboard5", `{"username": "${objResponse.cadranleaderboard5.username}", "score": "${objResponse.cadranleaderboard5.score}", "time": "${objResponse.cadranleaderboard5.time}"}`)
+                    localStorage.setItem("cadranleaderboard6", `{"username": "${objResponse.cadranleaderboard6.username}", "score": "${objResponse.cadranleaderboard6.score}", "time": "${objResponse.cadranleaderboard6.time}"}`)
+                    localStorage.setItem("cadranleaderboard0", `{"username": "${objResponse.cadranleaderboard7.username}", "score": "${objResponse.cadranleaderboard7.score}", "time": "${objResponse.cadranleaderboard7.time}"}`)
+                    localStorage.setItem("cadranleaderboard8", `{"username": "${objResponse.cadranleaderboard8.username}", "score": "${objResponse.cadranleaderboard8.score}", "time": "${objResponse.cadranleaderboard8.time}"}`)
+                    localStorage.setItem("cadranleaderboard9", `{"username": "${objResponse.cadranleaderboard9.username}", "score": "${objResponse.cadranleaderboard9.score}", "time": "${objResponse.cadranleaderboard9.time}"}`)
+                   
+
+
+
+                }
+
+            } 
+        }
+
+
+
+
+
+    }
 
 
 
